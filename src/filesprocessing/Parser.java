@@ -3,6 +3,7 @@
 package filesprocessing;
 
 import java.io.*;
+import java.util.ArrayList;
 
 
 //This class exists for all out parsing operations that we may need
@@ -53,24 +54,23 @@ Exceptions :
 public class Parser {
 
     public static final String PATH_SEPERATOR = System.getProperty("file.separator");
+    public static final String WORKING_DIRECTORY = System.getProperty("user.dir");
     public static final String PREV_PATH = "..";
     public static final String CURRENT_PATH =".";
-    public static final String HOME = "~";
+    public static final String HOME_DIRECTORY = System.getProperty("user.home");
     public static final int EXIT_NORMALLY = 0;
+
+    public static final String BAD_SECTION_NAME = "Error: Bad section name";
+    public static final String FILE_NOT_FOUND = "Error: Command not found";
+    public static final String NO_FILES_IN_SOURCEDIR = "ERROR: No files in sourcedir\n";
     BufferedReader reader;
-String workingDirectory;
-String destinationDirectory;
-String fileName;
-File fileObject;
-boolean isEmptyLine;
-boolean isCorrectSection;
+    private ArrayList<File> FilesInDirectory;
 
+    private File fileObject;
     public Parser(String destinationDirectory, String fileName) {
-        this.workingDirectory = System.getProperty("user.dir");
-        this.destinationDirectory = destinationDirectory;
+        this.FilesInDirectory = this.storeFilesInDirectory(destinationDirectory);
+        this.fileObject = new File(destinationDirectory+ PATH_SEPERATOR + fileName);
         this.createReadable();
-        this.fileObject = new File(this.workingDirectory + PATH_SEPERATOR + fileName);
-
     }
 
     /**
@@ -81,11 +81,67 @@ boolean isCorrectSection;
             this.reader = new BufferedReader(new FileReader(fileObject));
         }
         catch (FileNotFoundException | NullPointerException e) { //Todo make it more beautiful
-            System.out.println("Error: Command not found");
+
+            System.out.println(FILE_NOT_FOUND);
             System.exit(EXIT_NORMALLY); //todo check what do
         }
     }
 
+
+    /**
+     * Method to read line from file , catching each exception if line empty or file doesn't exit
+     * @return line as string
+     */
+    protected String readLine() {
+        try {
+            return reader.readLine();
+        }
+        catch (IOException e) {
+            System.out.println(FILE_NOT_FOUND);
+            System.exit(EXIT_NORMALLY);
+        }
+        return null;
+    }
+
+
+
+    /**
+     * gets list of files (with no directories) in any directory
+     * @return
+     */
+    public ArrayList<File> storeFilesInDirectory(String destination){
+        ArrayList<File> filesInDirectory = new ArrayList<>();
+        File dir = new File(destination);
+        File[] filesList = dir.listFiles();
+
+        if(filesList == null || !checkDestination(destination)){
+            System.out.println(NO_FILES_IN_SOURCEDIR);
+            System.exit(EXIT_NORMALLY);
+        }
+
+        for(File file:filesList){
+
+            if(file.isFile()){
+                filesInDirectory.add(file);
+            }
+        }
+        return filesInDirectory;
+    }
+
+    /**
+     * Checks if given directory exists in the first place or not in any directory
+     * @param destination
+     * @return
+     */
+    boolean checkDestination(String destination){
+        File dir = new File(destination);
+        return dir.exists();
+    }
+
+
+    public ArrayList<File> getFilesInDirectory(){
+        return this.FilesInDirectory;
+    }
 
 }
 
