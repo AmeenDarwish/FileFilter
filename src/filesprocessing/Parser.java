@@ -31,7 +31,7 @@ directories, and String for working with text.
 
 /*
 Working structure
-1.check if file to be parsed , is in directory,otherwise return error(exception type II)
+1.check if file to be parsed , is in directory,otherwise return error(exception Type II)
 2.Recognize Section start and end , return as object
 2+3.recognize section filter and order, return as same object
 4.recognize spaces and return(error TYPE I)
@@ -53,23 +53,27 @@ Exceptions :
 
 public class Parser {
 
-    public static final String PATH_SEPERATOR = System.getProperty("file.separator");
     public static final String WORKING_DIRECTORY = System.getProperty("user.dir");
-    public static final String PREV_PATH = "..";
     public static final String CURRENT_PATH =".";
     public static final String HOME_DIRECTORY = System.getProperty("user.home");
     public static final int EXIT_NORMALLY = 0;
-
-    public static final String BAD_SECTION_NAME = "Error: Bad section name";
     public static final String FILE_NOT_FOUND = "Error: Command not found";
     public static final String NO_FILES_IN_SOURCEDIR = "ERROR: No files in sourcedir\n";
+    public static final String WAVY_THING = "~";
     BufferedReader reader;
+    int lineNumber = 0;
     private ArrayList<File> FilesInDirectory;
 
     private File fileObject;
-    public Parser(String destinationDirectory, String fileName) {
+    public Parser(String destinationDirectory, String commandsDestination) {
+        if(destinationDirectory.equals(CURRENT_PATH)){
+            destinationDirectory = WORKING_DIRECTORY;
+        }
+        if(destinationDirectory.equals(HOME_DIRECTORY)|| destinationDirectory.equals(WAVY_THING)){
+            destinationDirectory = HOME_DIRECTORY;
+        }
         this.FilesInDirectory = this.storeFilesInDirectory(destinationDirectory);
-        this.fileObject = new File(destinationDirectory+ PATH_SEPERATOR + fileName);
+        this.fileObject = new File(commandsDestination);
         this.createReadable();
     }
 
@@ -92,15 +96,17 @@ public class Parser {
      * Method to read line from file , catching each exception if line empty or file doesn't exit
      * @return line as string
      */
-    protected String readLine() {
+    protected String readLineCommand() {
         try {
+            this.lineNumber++;
             return reader.readLine();
         }
         catch (IOException e) {
             System.out.println(FILE_NOT_FOUND);
             System.exit(EXIT_NORMALLY);
         }
-        return null;
+        System.exit(EXIT_NORMALLY);
+        return null;//End of file
     }
 
 
@@ -142,6 +148,7 @@ public class Parser {
     public ArrayList<File> getFilesInDirectory(){
         return this.FilesInDirectory;
     }
+
 
 }
 
